@@ -68,9 +68,11 @@ for r in runs:
 ```
 
 
+## How to install
 
+Make sure to install mongodb at the very beginning. The instructions are different for different operating systems. Then run:
 
-## Key Things to Remember
----
+```
+pip install funtime
+```
 
-The query functions return a generator to handle or pandas dask items you need to use our complementry Object

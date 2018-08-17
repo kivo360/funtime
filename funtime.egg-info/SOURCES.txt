@@ -1,4 +1,5 @@
 README.md
+setup.py
 funtime/__init__.py
 funtime/config.py
 funtime/main.py
