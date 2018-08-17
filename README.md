@@ -70,7 +70,7 @@ for r in runs:
 
 
 
-## Key Parts
+## Key Things to Remember
 ---
 
-You
+The query functions return a generator to handle or pandas dask items you need to use our complementry Object
