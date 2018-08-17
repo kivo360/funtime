@@ -1,6 +1,6 @@
 import time
 
-from funtime import Store
+from funtime import Store, Converter
 
 
 
@@ -23,9 +23,10 @@ runs = store['hello.World'].query({
 })
 # runs = store['hello.World'].query_time(time_type="before", start=time.time(), query_type="price")
 
+
+
 # returning some shit
-for r in runs:
-    print(r)
+print(Converter.to_dataframe(runs, "dask"))
 
 
 def create_library():
