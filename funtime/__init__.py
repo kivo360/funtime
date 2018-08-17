@@ -1,1 +1,1 @@
-from .main import Store
+from .main import Store, Converter

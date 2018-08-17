@@ -5,12 +5,14 @@ from arctic import Arctic, register_library_type
 from arctic.decorators import mongo_retry
 
 import maya
+import pymongo
 from datetime import datetime as dt
-
+import time
 from abc import ABCMeta, abstractmethod
 
 from funtime.util.timing import TimeHandler
 from funtime.config import LIBRARYTYPE
+import funtime.util.ticker_handler as th
 
 class DataStoreBase(metaclass=ABCMeta):
     def __init__(self):
@@ -56,7 +58,62 @@ class FunStore(DataStoreBase):
     def initialize_library(cls, arctic_lib, **kwargs):
         FunStore(arctic_lib)._ensure_index()
 
-    
+    def query_latest(self, *args):
+        """
+            Get the latest 
+        """
+        # print(args)
+        qitem = th.merge_dicts(*args)
+        # print(qitem)
+        # If there a 'price' type, check to see if there's a 'period' as well. 
+        # This determines which kind of data we need to get.
+        query_type = None
+
+
+        since = "now" # since 'now' means time.time()
+        limit = 500
+        # Here we assume that we are getting price information
+        qtype = {
+            "type": "price"
+        }
+
+        try:
+            qtype["type"] = qitem.pop("type")
+        except Exception:
+            pass
+
+        try:
+            # Since when
+            since = qitem.pop('since')
+        except:
+            pass
+        
+        try:
+            # Since when
+            limit = qitem.pop('limit')
+        except:
+            pass
+        
+        if qtype["type"] == "price":
+            
+            try:
+                th.price_query_filter(qitem)
+            except KeyError:
+                print("Silent Failure")
+                return
+        time_query = {}
+        if since is not "now":
+            time_query = TimeHandler.everything_before(since)
+        else:
+            time_query = TimeHandler.everything_before(time.time())
+        final = th.merge_dicts(qtype, qitem, time_query)
+
+        # print(final)
+        for x in self._collection.find(final).sort("timestamp",pymongo.DESCENDING).limit(limit):
+            del x['_id'] # Remove default unique '_id' field from doc
+            # TODO: Create generic cast
+            yield x
+
     @mongo_retry
     def query(self, *args):
         """
@@ -66,23 +123,25 @@ class FunStore(DataStoreBase):
         See:
         http://api.mongodb.org/python/current/api/pymongo/collection.html
         """
-        all_dicts = []
-        for ag in args:
-            if isinstance(ag, dict):
-                all_dicts.append(ag)
-        
-        # Get all dictionaries
-        # Merge them
-        # Check if type is there
-
-        qitem = { k: v for d in all_dicts for k, v in d.items() }
+        qitem = th.merge_dicts(args)
+        # If there a 'price' type, check to see if there's a 'period' as well. 
+        # This determines which kind of data we need to get.
+        query_type = None
 
         try:
-            qitem['type']
+            query_type = qitem['type']
         except KeyError:
             print('need to specify a type')
             return
 
+        if query_type == "price":
+            try:
+                th.price_query_filter(qitem)
+            except KeyError:
+                print("Silent Failure")
+                return
+        # 
+        
         for x in self._collection.find(qitem):
             del x['_id'] # Remove default unique '_id' field from doc
             # TODO: Create generic cast

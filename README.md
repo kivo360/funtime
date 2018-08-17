@@ -28,7 +28,7 @@ This increases the insert time, yet reduces the querying time. Numbers are easie
 ### Example:
 ---
 ```python
-from funtime import Store
+from funtime import Store, Converter
 import mimesis # this is used to seed data for our test
 import time
 
@@ -65,6 +65,26 @@ runs2 = store['hello.World'].query_time(time_type="before", start=time.time(), q
 # Check for results
 for r in runs:
     print(r)
+
+```
+
+## Using the Pandas/Dask converter
+
+As a data scientist, you may want to handle your data in dataframe format. With `funtime`, you can get your timestamp information in both `pandas.DataFrame` and `dask.DataFrame` format. You would use the `Converter` import. 
+
+```python
+from funtime import Store, Converter
+
+
+runs = store['hello.World'].query({
+    "type": "price"
+})
+
+# if you want a pandas object
+df = Converter.to_dataframe(runs)
+
+# If you want to do parallel processing within dask
+ddf = Converter.to_dataframe(runs, "dask")
 ```
 
 
@@ -76,3 +96,8 @@ Make sure to install mongodb at the very beginning. The instructions are differe
 pip install funtime
 ```
 
+Or you can use `pipenv` for it:
+
+```
+pipenv install funtime
+```

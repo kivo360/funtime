@@ -11,22 +11,24 @@ store['hello.World'].store({
     "type": "price",
     "currency": "ETH_USD",
     "timestamp": time.time(),
-    "candlestick": {
-        "open": 1234,
-        "close": 1234.41,
-        "other": "etc"
-    }
+    "open": 1234,
+    "close": 1234.41,
+    "other": "etc",
+    "exchange": "binance",
+    "period": "minute"
 })
 
-runs = store['hello.World'].query({
-    "type": "price"
+runs = store['hello.World'].query_latest({
+    "type": "price",
+    "exchange": "binance",
+    "period": "minute"
 })
 # runs = store['hello.World'].query_time(time_type="before", start=time.time(), query_type="price")
 
 
 
 # returning some shit
-print(Converter.to_dataframe(runs, "dask"))
+print(Converter.to_dataframe(runs))
 
 
 def create_library():

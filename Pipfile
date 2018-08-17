@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 funtime = {editable = true, path = "."}
+dask = {version = "*", extras = ["complete"]}
 
 [dev-packages]
 pylint = "*"

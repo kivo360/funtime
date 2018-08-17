@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
 
 setup(
     name="funtime",
-    version="0.1",
+    version="0.1.1.1",
     author="Kevin Hill",
     author_email="kevin@funguana.com",
     description="A timeseries library to make your workflow easier",
     long_description=long_description,
     long_description_content_type="text/markdown",
     py_modules=["funtime"],
-    install_requires=['scipy', 'numpy', 'pandas', 'click', 'arctic', 'dask', 'dask[dataframe]', 'python-decouple', 'maya'], 
+    install_requires=['scipy', 'numpy', 'pandas', 'click', 'arctic', 'dask', 'dask[complete]', 'python-decouple', 'maya'], 
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

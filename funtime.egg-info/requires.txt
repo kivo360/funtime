@@ -4,6 +4,6 @@ pandas
 click
 arctic
 dask
-dask[dataframe]
+dask[complete]
 python-decouple
 maya
