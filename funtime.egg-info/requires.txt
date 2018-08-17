@@ -1,0 +1,9 @@
+scipy
+numpy
+pandas
+click
+arctic
+dask
+dask[dataframe]
+python-decouple
+maya
