@@ -28,36 +28,49 @@ This increases the insert time, yet reduces the querying time. Numbers are easie
 ### Example:
 ---
 ```python
-import funtime
+from funtime import Store
 import mimesis # this is used to seed data for our test
+import time
 
+# Create a library and access the store you want
+store = Store().create_lib("hello.World").get_store()
 
-# access new library
-
-def seed_dict():
-    """ Returns a dict that will seed the database"""
-    pass
-
-# store data with a datetime
-if 'mongo_host' not in globals():
-    mongo_host = 'localhost'
-store = Arctic(mongo_host)
-# store.delete_library('twitter.tweets')
-
-### Initialize the library
-try:
-    register_library_type(TwitterStore._LIBRARY_TYPE, TwitterStore)
-except Exception as e:
-    print(str(e))
-# store.list_libraries()
-store.initialize_library('ttwitter.tweets', TwitterStore._LIBRARY_TYPE)
-
-
-lib = store['ttwitter.tweets']
 # store the data with a timestamp
+store['hello.World'].store({
+    "type": "price",
+    "currency": "ETH_USD",
+    "timestamp": time.time(),
+    "candlestick": {
+        "open": 1234,
+        "close": 1234.41,
+        "other": "etc"
+    }
+})
 
-# query data with a timestamp
-# query data with a set of datetimes
-# get query as a pandas object
-# get query as a dask object
+
+# Query general information. It returns a generator
+runs = store['hello.World'].query({
+    "type": "price"
+})
+
+# Check for results
+for r in runs:
+    print(r)
+
+
+# Even get information with complex time queries
+runs2 = store['hello.World'].query_time(time_type="before", start=time.time(), query_type="price")
+
+
+# Check for results
+for r in runs:
+    print(r)
 ```
+
+
+
+
+## Key Parts
+---
+
+You
