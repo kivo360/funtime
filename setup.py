@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="funtime",
-    version="0.1.1.1",
+    version="0.1.2.1",
     author="Kevin Hill",
     author_email="kevin@funguana.com",
     description="A timeseries library to make your workflow easier",

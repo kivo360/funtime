@@ -1,9 +1,0 @@
-scipy
-numpy
-pandas
-click
-arctic
-dask
-dask[complete]
-python-decouple
-maya

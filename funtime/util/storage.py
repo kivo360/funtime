@@ -108,7 +108,6 @@ class FunStore(DataStoreBase):
             time_query = TimeHandler.everything_before(time.time())
         final = th.merge_dicts(qtype, qitem, time_query)
 
-        # print(final)
         for x in self._collection.find(final).sort("timestamp",pymongo.DESCENDING).limit(limit):
             del x['_id'] # Remove default unique '_id' field from doc
             # TODO: Create generic cast
@@ -190,7 +189,6 @@ class FunStore(DataStoreBase):
             "type": query_type
         }
         main_query = {**pre, **time_query, **kwargs}
-        print(main_query)
         for x in self._collection.find(main_query):
             del x['_id'] # Remove default unique '_id' field from doc
             # TODO: Create generic cast

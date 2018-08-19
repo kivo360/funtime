@@ -68,6 +68,19 @@ for r in runs:
 
 ```
 
+### To change default store and host
+```python
+from funtime import set_library_type, set_mongo_host
+
+
+# Run before you run everything else
+set_library_type()
+
+# Run before you run everything else
+set_mongo_host()
+```
+
+
 ## Using the Pandas/Dask converter
 
 As a data scientist, you may want to handle your data in dataframe format. With `funtime`, you can get your timestamp information in both `pandas.DataFrame` and `dask.DataFrame` format. You would use the `Converter` import. 
