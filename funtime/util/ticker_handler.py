@@ -6,6 +6,7 @@ def merge_dicts(*dict_list):
     """Extract all of the dictionaries from this list, then merge them together """
     # if not isinstance(dict_list, list):
     #     raise TypeError("dict_list is not a list. Please try again")
+    # print(dict_list)
     all_dicts = []
     for ag in dict_list:
         if isinstance(ag, dict):
@@ -14,9 +15,12 @@ def merge_dicts(*dict_list):
     # Get all dictionaries
     # Merge them
     # Check if type is there
-
-    qitem = { k: v for d in all_dicts for k, v in d.items() }
-    return qitem
+    try:
+        qitem = { k: v for d in all_dicts for k, v in d.items() }
+        return qitem
+    except Exception:
+        return {}
+    
 
 
 def filter_query(filter_dict, required_keys):

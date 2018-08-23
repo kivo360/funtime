@@ -1,3 +1,4 @@
+import types
 from arctic import Arctic, register_library_type
 from arctic.decorators import mongo_retry
 from funtime.util.storage import FunStore
@@ -26,24 +27,24 @@ class Store:
         return self.store
 
 
-class Reader(object):
-    def __init__(self, g):
-        self.g = g
-    def read(self, n=0):
-        try:
-            return next(self.g)
-        except StopIteration:
-            return ''
-
-
 class Converter:
     def __init__(self):
         pass
     
     @classmethod
     def to_dataframe(cls, generlist, ctype="pandas"):
-        df = pd.DataFrame(generlist)
-        if ctype == "pandas":
-            return df
-        if ctype == "dask":
-            return dd.from_pandas(df, npartitions=1)
+        if isinstance(generlist, types.GeneratorType):
+            # print(list(generlist) )
+            df = pd.DataFrame(generlist)
+            if ctype == "pandas":
+                return df
+            if ctype == "dask":
+                return dd.from_pandas(df, npartitions=1)
+        elif isinstance(generlist, list):
+            df = pd.DataFrame.from_records(generlist)
+            if ctype == "pandas":
+                return df
+            if ctype == "dask":
+                return dd.from_pandas(df, npartitions=1)
+        else:
+            raise TypeError("You didn't enter eiter a list or generator")

@@ -122,11 +122,10 @@ class FunStore(DataStoreBase):
         See:
         http://api.mongodb.org/python/current/api/pymongo/collection.html
         """
-        qitem = th.merge_dicts(args)
+        qitem = th.merge_dicts(*args)
         # If there a 'price' type, check to see if there's a 'period' as well. 
         # This determines which kind of data we need to get.
         query_type = None
-
         try:
             query_type = qitem['type']
         except KeyError:
@@ -155,7 +154,7 @@ class FunStore(DataStoreBase):
         time_query = None
 
         available_ttypes = ["window", "before", "after"]
-        
+        qitem = th.merge_dicts(args)
 
         # Check for things not required
         # Make sure to check for validity inside as well 
@@ -188,7 +187,7 @@ class FunStore(DataStoreBase):
         pre = {
             "type": query_type
         }
-        main_query = {**pre, **time_query, **kwargs}
+        main_query = {**pre, **time_query, **kwargs, **qitem}
         for x in self._collection.find(main_query):
             del x['_id'] # Remove default unique '_id' field from doc
             # TODO: Create generic cast
@@ -232,7 +231,8 @@ class FunStore(DataStoreBase):
 #         to_store['stuff'] = Binary(cPickle.dumps(thing.stuff))
         # Respect any soft-quota on write - raises if stats().totals.size > quota 
         self._arctic_lib.check_quota()
-        self._collection.insert_one(store_item)
+        self._collection.update(store_item, store_item, upsert=True)
+        # self._collection.insert_one(store_item)
 
     @mongo_retry
     def delete(self, query):
@@ -240,4 +240,11 @@ class FunStore(DataStoreBase):
         Simple delete method
         """
         self._collection.delete_one(query)
+    
+    @mongo_retry
+    def delete_many(self, query):
+        """
+        Simple delete method
+        """
+        self._collection.delete_many(query)
 

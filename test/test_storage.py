@@ -1,34 +1,31 @@
 import time
-
+from copy import deepcopy
 from funtime import Store, Converter
 
 
 
 store = Store().create_lib("hello.World").get_store()
+hworld = store['hello.World']
 
-# Insert dogshit
-store['hello.World'].store({
-    "type": "price",
-    "currency": "ETH_USD",
-    "timestamp": time.time(),
-    "open": 1234,
-    "close": 1234.41,
-    "other": "etc",
-    "exchange": "binance",
-    "period": "minute"
-})
+def test_single():
+    only_time = time.time()
+    for i in range(5):
+        hworld.store({
+            "type": "price",
+            "currency": "ETH_USD",
+            "timestamp": only_time,
+            "open": 1234,
+            "close": 1234.41,
+            "other": "etc",
+            "exchange": "binance",
+            "period": "minute"
+        })
 
-runs = store['hello.World'].query_latest({
-    "type": "price",
-    "exchange": "binance",
-    "period": "minute"
-})
-# runs = store['hello.World'].query_time(time_type="before", start=time.time(), query_type="price")
-
-
-
-# returning some shit
-print(Converter.to_dataframe(runs))
+    single_record = hworld.query({"type": "price", "timestamp": only_time, "exchange": "binance", "period": "minute"})
+    record_frame = Converter.to_dataframe(single_record)
+    print(record_frame)
+    
+    assert record_frame['type'].count() == 1
 
 
 def create_library():
@@ -42,3 +39,6 @@ def query_item():
 
 def access_item():
     pass
+
+if __name__ == "__main__":
+    test_single()
