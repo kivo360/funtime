@@ -33,7 +33,7 @@ import mimesis # this is used to seed data for our test
 import time
 
 # Create a library and access the store you want
-store = Store().create_lib("hello.World").get_store()
+store = Store('localhost').create_lib("hello.World").get_store()
 
 # store the data with a timestamp
 store['hello.World'].store({
