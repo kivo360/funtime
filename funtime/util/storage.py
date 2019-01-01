@@ -35,6 +35,18 @@ class DataStoreBase(metaclass=ABCMeta):
         pass
 
 
+def skiplimit(db, page_size, page_num):
+    """returns a set of documents belonging to page number `page_num`
+    where size of each page is `page_size`.
+    """
+    # Calculate number of documents to skip
+    skips = page_size * (page_num - 1)
+
+    # Skip and limit
+    cursor = db['students'].find().skip(skips).limit(page_size)
+    return cursor
+
+
 
 class FunStore(DataStoreBase):
     # NOTE: I really want to add dask into this
@@ -58,10 +70,13 @@ class FunStore(DataStoreBase):
     def initialize_library(cls, arctic_lib, **kwargs):
         FunStore(arctic_lib)._ensure_index()
 
-    def query_latest(self, *args):
+    @mongo_retry
+    def query_latest(self, *args, **kwargs):
         """
             Get the latest 
         """
+
+
         # print(args)
         qitem = th.merge_dicts(*args)
         # print(qitem)
@@ -77,10 +92,15 @@ class FunStore(DataStoreBase):
             "type": "price"
         }
 
+
         try:
             qtype["type"] = qitem.pop("type")
         except Exception:
-            pass
+            # Try looking for it in kwargs
+            _type = kwargs.get("_type")
+            if _type is not None:
+                qtype["type"] = _type
+        
 
         try:
             # Since when
@@ -99,22 +119,42 @@ class FunStore(DataStoreBase):
             try:
                 th.price_query_filter(qitem)
             except KeyError:
-                print("Silent Failure")
-                return
+                raise AttributeError("When querying price information, couldn't find the required variables. Must have: exchange (to select what exchange the data is coming from) and period (to select the time period of the data)")
         time_query = {}
         if since is not "now":
             time_query = TimeHandler.everything_before(since)
         else:
             time_query = TimeHandler.everything_before(time.time())
         final = th.merge_dicts(qtype, qitem, time_query)
+        
+        # Determine pagination here.
+
+        pagination = kwargs.get("pagination", False)
+        page_size = kwargs.get("page_size", 10)
+        page_num = kwargs.get("page_num", 1)
+        print(pagination, page_size, page_num)
+        
+        # Gets the page if pagination == true
+        if pagination == True:
+            # Re return something else here
+            skips = page_size * (page_num - 1)
+            cursor = self._collection.find(final).sort("timestamp",pymongo.DESCENDING).skip(skips).limit(page_size)
+            for x in cursor:
+                del x["_id"]
+                yield x
+        
+        # Break the function here
+        return 
 
         for x in self._collection.find(final).sort("timestamp",pymongo.DESCENDING).limit(limit):
             del x['_id'] # Remove default unique '_id' field from doc
             # TODO: Create generic cast
             yield x
 
+
+
     @mongo_retry
-    def query(self, *args):
+    def query(self, *args, **kwargs):
         """
         Generic query method.
         In reality, your storage class would have its own query methods,
@@ -125,25 +165,42 @@ class FunStore(DataStoreBase):
         qitem = th.merge_dicts(*args)
         # If there a 'price' type, check to see if there's a 'period' as well. 
         # This determines which kind of data we need to get.
-        query_type = None
-        try:
-            query_type = qitem['type']
-        except KeyError:
-            print('need to specify a type')
-            return
+        query_type = qitem.get('type')
+        _query_type = kwargs.get("_type")
+        if query_type is None and _query_type is None:
+            raise AttributeError("Must specify a type. It is a selector to help the user sort through data. Can use either kwargs or dict")
+
+        if query_type is None:
+            # This means _query_type is specified instead
+            query_type = _query_type
 
         if query_type == "price":
             try:
                 th.price_query_filter(qitem)
             except KeyError:
-                print("Silent Failure")
-                return
-        # 
+                raise AttributeError("When querying price information, couldn't find the required variables. Must have: exchange (to select what exchange the data is coming from) and period (to select the time period of the data)")
         
+        pagination = kwargs.get("pagination", False)
+        page_size = kwargs.get("page_size", 1)
+        page_num = kwargs.get("page_num", 10)
+        # Gets the page if pagination == true
+        if pagination:
+            # Re return something else here
+            skips = page_size * (page_num - 1)
+            cursor = self._collection.find(qitem).sort("timestamp",pymongo.DESCENDING).skip(skips).limit(page_size)
+            for x in cursor:
+                del x["_id"]
+                yield x
+        
+        # Break the function here
+        return 
+        
+        # Get absolute latest
         for x in self._collection.find(qitem):
             del x['_id'] # Remove default unique '_id' field from doc
             # TODO: Create generic cast
             yield x
+
     @mongo_retry
     def query_time(self, *args, **kwargs):
         # Assume the default variables here
@@ -155,6 +212,8 @@ class FunStore(DataStoreBase):
 
         available_ttypes = ["window", "before", "after"]
         qitem = th.merge_dicts(args)
+
+        # Find a better way to handle time manipulations
 
         # Check for things not required
         # Make sure to check for validity inside as well 

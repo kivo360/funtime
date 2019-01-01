@@ -56,5 +56,8 @@ def access_item():
     pass
 
 if __name__ == "__main__":
-    test_single()
-    query_latest()
+    # for i in range(1, 30):
+    #     poop = list(hworld.query_latest({"type":"poop"}, pagination=True, page_num=i, page_size=15))
+    #     print(poop)
+
+# Social network closer. I can add pagination to my calls now instantly. As long as the api updates everything
