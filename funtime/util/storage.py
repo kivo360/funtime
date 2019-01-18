@@ -35,17 +35,6 @@ class DataStoreBase(metaclass=ABCMeta):
         pass
 
 
-def skiplimit(db, page_size, page_num):
-    """returns a set of documents belonging to page number `page_num`
-    where size of each page is `page_size`.
-    """
-    # Calculate number of documents to skip
-    skips = page_size * (page_num - 1)
-
-    # Skip and limit
-    cursor = db['students'].find().skip(skips).limit(page_size)
-    return cursor
-
 
 
 class FunStore(DataStoreBase):
@@ -132,7 +121,6 @@ class FunStore(DataStoreBase):
         pagination = kwargs.get("pagination", False)
         page_size = kwargs.get("page_size", 10)
         page_num = kwargs.get("page_num", 1)
-        print(pagination, page_size, page_num)
         
         # Gets the page if pagination == true
         if pagination == True:
@@ -144,12 +132,11 @@ class FunStore(DataStoreBase):
                 yield x
         
         # Break the function here
-        return 
-
-        for x in self._collection.find(final).sort("timestamp",pymongo.DESCENDING).limit(limit):
-            del x['_id'] # Remove default unique '_id' field from doc
-            # TODO: Create generic cast
-            yield x
+        else:
+            for x in self._collection.find(final).sort("timestamp",pymongo.DESCENDING).limit(limit):
+                del x['_id'] # Remove default unique '_id' field from doc
+                # TODO: Create generic cast
+                yield x
 
 
 
@@ -187,19 +174,18 @@ class FunStore(DataStoreBase):
         if pagination:
             # Re return something else here
             skips = page_size * (page_num - 1)
-            cursor = self._collection.find(qitem).sort("timestamp",pymongo.DESCENDING).skip(skips).limit(page_size)
+            cursor = self._collection.find(qitem).skip(skips).limit(page_size)
             for x in cursor:
                 del x["_id"]
                 yield x
         
         # Break the function here
-        return 
-        
-        # Get absolute latest
-        for x in self._collection.find(qitem):
-            del x['_id'] # Remove default unique '_id' field from doc
-            # TODO: Create generic cast
-            yield x
+        else:
+            # Get absolute latest
+            for x in self._collection.find(qitem):
+                del x['_id'] # Remove default unique '_id' field from doc
+                # TODO: Create generic cast
+                yield x
 
     @mongo_retry
     def query_time(self, *args, **kwargs):
@@ -246,6 +232,7 @@ class FunStore(DataStoreBase):
         pre = {
             "type": query_type
         }
+
         main_query = {**pre, **time_query, **kwargs, **qitem}
         for x in self._collection.find(main_query):
             del x['_id'] # Remove default unique '_id' field from doc

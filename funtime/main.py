@@ -16,7 +16,7 @@ class Store:
             print("Register Library Type")
             register_library_type(FunStore._LIBRARY_TYPE, FunStore)
         except Exception:
-            print("The library type already exist")
+            print("The library type {} already exist".format(FunStore._LIBRARY_TYPE))
         self.store = Arctic(host)
         
 

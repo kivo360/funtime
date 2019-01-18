@@ -4,8 +4,8 @@ from funtime import Store, Converter
 
 
 
-store = Store('localhost').create_lib("hello.World").get_store()
-hworld = store['hello.World']
+store = Store('localhost').create_lib("global").get_store()
+hworld = store['global']
 
 def test_single():
     only_time = time.time()
@@ -56,8 +56,7 @@ def access_item():
     pass
 
 if __name__ == "__main__":
-    # for i in range(1, 30):
-    #     poop = list(hworld.query_latest({"type":"poop"}, pagination=True, page_num=i, page_size=15))
-    #     print(poop)
+    poop = list(hworld.query_latest({ "type" : "user", "email": "kivo360@gmail.com"}))
+    print(poop)
 
 # Social network closer. I can add pagination to my calls now instantly. As long as the api updates everything

@@ -33,7 +33,7 @@ def filter_query(filter_dict, required_keys):
 
     available = []
     for k,v in filter_dict.items():
-        print(k, v)
+        # print(k, v)
         if k in required_keys:
             available.append(k)
     return available
