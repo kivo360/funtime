@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/kevin/.local/share/virtualenvs/funtime-4TTtdudM/bin/python"
+    "python.pythonPath": "/home/kevin/.local/share/virtualenvs/funtime-4TTtdudM/bin/python",
+    "python.linting.pylintEnabled": true
 }

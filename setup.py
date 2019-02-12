@@ -44,14 +44,14 @@ class UploadCommand(Command):
 
 setup(
     name="funtime",
-    version="0.3",
+    version="0.4.2",
     author="Kevin Hill",
     author_email="kevin@funguana.com",
     description="A timeseries library to make your workflow easier",
     long_description=long_description,
     long_description_content_type="text/markdown",
     py_modules=["funtime"],
-    install_requires=['scipy', 'numpy', 'pandas', 'click', 'arctic', 'dask', 'dask[complete]', 'python-decouple', 'maya'], 
+    install_requires=['scipy', 'numpy', 'pandas', 'click', 'arctic', 'dask', 'dask[complete]', 'python-decouple', 'maya', 'crayons'], 
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

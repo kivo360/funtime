@@ -6,6 +6,8 @@ from arctic.decorators import mongo_retry
 
 import maya
 import pymongo
+from pymongo.errors import BulkWriteError
+from pymongo import InsertOne, DeleteMany, ReplaceOne, UpdateOne
 from datetime import datetime as dt
 import time
 from abc import ABCMeta, abstractmethod
@@ -13,6 +15,7 @@ from abc import ABCMeta, abstractmethod
 from funtime.util.timing import TimeHandler
 from funtime.config import LIBRARYTYPE
 import funtime.util.ticker_handler as th
+from copy import deepcopy
 
 class DataStoreBase(metaclass=ABCMeta):
     def __init__(self):
@@ -58,6 +61,46 @@ class FunStore(DataStoreBase):
     @classmethod
     def initialize_library(cls, arctic_lib, **kwargs):
         FunStore(arctic_lib)._ensure_index()
+
+    def bulk_upsert(self, items, _column_first=[], _in=['timestamp']):
+        items = deepcopy(items)
+        assert isinstance(items, list)
+        assert isinstance(_column_first, list)
+        assert isinstance(_in, list)
+
+        if len(items) == 0:
+            raise IndexError("Items should be more than zero")
+        
+        first_column_search = {}
+        first_item = dict(items[0])
+        for name in _column_first:
+            column = first_item.get(name)
+            if column is None:
+                continue
+            first_column_search[name] = column
+        
+
+        
+        if len(_in) > 0:
+            for __in in _in:
+                temp = {
+                    f"{__in}":{"$in": [x[__in] for x in items]}
+                }
+                first_column_search = {**first_column_search, **temp}
+        
+        # print(first_column_search)
+
+        # bulk = self._collection.initialize_ordered_bulk_op()
+        self._collection.delete_many(first_column_search)
+        self._collection.insert_many(items)
+        # bulk.insert_many(items)
+        # self._arctic_lib.check_quota()
+        # bulk.execute()
+        # self._collection.bulk_write([
+        #     DeleteMany(first_column_search),
+            
+        # ])
+
 
     @mongo_retry
     def query_latest(self, *args, **kwargs):
@@ -138,6 +181,85 @@ class FunStore(DataStoreBase):
                 # TODO: Create generic cast
                 yield x
 
+    @mongo_retry
+    def query_last(self, *args, **kwargs):
+        """
+            Get the latest 
+        """
+
+        # print(args)
+        qitem = th.merge_dicts(*args)
+        # print(qitem)
+        # If there a 'price' type, check to see if there's a 'period' as well.
+        # This determines which kind of data we need to get.
+        query_type = None
+
+        since = "now"  # since 'now' means time.time()
+        limit = 500
+        # Here we assume that we are getting price information
+        qtype = {
+            "type": "price"
+        }
+
+        try:
+            qtype["type"] = qitem.pop("type")
+        except Exception:
+            # Try looking for it in kwargs
+            _type = kwargs.get("_type")
+            if _type is not None:
+                qtype["type"] = _type
+
+        try:
+            # Since when
+            since = qitem.pop('since')
+        except:
+            pass
+
+        try:
+            # Since when
+            limit = qitem.pop('limit')
+        except:
+            pass
+
+        if qtype["type"] == "price":
+
+            try:
+                th.price_query_filter(qitem)
+            except KeyError:
+                raise AttributeError(
+                    "When querying price information, couldn't find the required variables. Must have: exchange (to select what exchange the data is coming from) and period (to select the time period of the data)")
+        time_query = {}
+        if since is not "now":
+            time_query = TimeHandler.everything_before(since)
+        else:
+            time_query = TimeHandler.everything_before(time.time())
+        final = th.merge_dicts(qtype, qitem, time_query)
+
+        # Determine pagination here.
+
+        pagination = kwargs.get("pagination", False)
+        page_size = kwargs.get("page_size", 10)
+        page_num = kwargs.get("page_num", 1)
+        main_list = []
+        # Gets the page if pagination == true
+        if pagination == True:
+            # Re return something else here
+            skips = page_size * (page_num - 1)
+            cursor = self._collection.find(final).sort(
+                "timestamp", pymongo.DESCENDING).skip(skips).limit(page_size)
+            for x in cursor:
+                del x["_id"]
+                main_list.append(x)
+
+        # Break the function here
+        else:
+            for x in self._collection.find(final).sort("timestamp", pymongo.DESCENDING).limit(limit):
+                del x['_id']  # Remove default unique '_id' field from doc
+                # TODO: Create generic cast
+                main_list.append(x)
+        if len(main_list) == 0:
+            return None
+        return main_list[0]
 
 
     @mongo_retry
@@ -240,6 +362,48 @@ class FunStore(DataStoreBase):
             yield x
     
     @mongo_retry
+    def query_closest(self, query_item):
+        """
+            closest = store.query_closest({"type": "...", "item_1": "...", "timestamp": "..."}) # returns a list of the closest items to a given thing
+        """
+
+        if not isinstance(query_item, dict):
+            raise TypeError("The query query_item isn't a dictionary")
+        
+        _type = query_item.get("type")
+        _timestamp = query_item.get("timestamp")
+
+        if _type is None:
+            raise AttributeError("Please make sure to add a type to the query_item dict")
+
+        if _timestamp is None:
+            raise AttributeError("Timestamp doesn't exist. It's necessary to provide closest query")
+        
+        query_less = deepcopy(query_item)
+        query_more = deepcopy(query_item)
+        
+        query_less["timestamp"] = {"$lte": _timestamp}
+        query_more["timestamp"] = {"$gt": _timestamp}
+        closestBelow = self._collection.find(query_less).sort(
+            "timestamp", pymongo.DESCENDING).limit(1)
+        closestAbove = self._collection.find(query_more).sort("timestamp", pymongo.ASCENDING).limit(1)
+        
+        combined = list(closestAbove) + list(closestBelow)
+        for x in combined:
+            del x['_id']
+        
+        # abs()
+        if len(combined) >= 2: 
+            if abs(combined[0]["timestamp"] - _timestamp) > abs(combined[1]["timestamp"] - _timestamp):
+                return combined[1]
+            else:
+                return combined[0]
+        elif combined == 1:
+            return combined[0]
+        else:
+            return None
+
+    @mongo_retry
     def stats(self):
         """
         Database usage statistics. Used by quota.
@@ -248,9 +412,7 @@ class FunStore(DataStoreBase):
         db = self._collection.database
         res['dbstats'] = db.command('dbstats')
         res['data'] = db.command('collstats', self._collection.name)
-        res['totals'] = {'count': res['data']['count'],
-                         'size': res['data']['size']
-                         }
+        res['totals'] = {'count': res['data']['count'], 'size': res['data']['size']}
         return res
     
     @mongo_retry

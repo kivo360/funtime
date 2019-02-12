@@ -5,7 +5,7 @@ from funtime.util.storage import FunStore
 from funtime.config import MONGOHOST
 import pandas as pd
 import dask.dataframe as dd
-
+from crayons import cyan, red
 
 class Store:
     def __init__(self, host):
@@ -13,10 +13,9 @@ class Store:
         """Initializes the store here if it hasn't already z"""
         
         try:
-            print("Register Library Type")
             register_library_type(FunStore._LIBRARY_TYPE, FunStore)
         except Exception:
-            print("The library type {} already exist".format(FunStore._LIBRARY_TYPE))
+            print(f"The library-type: {cyan(FunStore._LIBRARY_TYPE, bold=True)} already exist")
         self.store = Arctic(host)
         
 
@@ -27,7 +26,7 @@ class Store:
         try:
             self.store.initialize_library(lib_name, FunStore._LIBRARY_TYPE)
         except Exception:
-            print("Unable to create library with name: {}".format(lib_name))
+            print(f"Unable to create library with name: {red(lib_name)}")
         
         return self
     

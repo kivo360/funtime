@@ -6,9 +6,11 @@ name = "pypi"
 [packages]
 funtime = {editable = true, path = "."}
 dask = {version = "*", extras = ["complete"]}
+crayons = "*"
 
 [dev-packages]
 pylint = "*"
+"autopep8" = "*"
 
 [requires]
 python_version = "3.6"
