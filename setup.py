@@ -44,7 +44,7 @@ class UploadCommand(Command):
 
 setup(
     name="funtime",
-    version="0.4.2",
+    version="0.4.6",
     author="Kevin Hill",
     author_email="kevin@funguana.com",
     description="A timeseries library to make your workflow easier",
@@ -61,3 +61,16 @@ setup(
     cmdclass={"upload": UploadCommand},
     
 )
+# I accept loss, pain, conflict, misunderstandings, failure and death while also embracing everything life has to offer. 
+# Maybe by embracing the bad I'm accepting the good in life too.
+# I'll slash the enemy with intent to kill knowing that it's to live. 
+# I'll deeply know that conveying things honestly, even when that could  produce great negatives is apart of the great experience of life. 
+# I accept that not failing is not taking all of life in. 
+# I accept that avoiding hatred and hurtful feelings is not allowing myself to be human.
+# I accept the hard shit.
+# I accept the rejection.
+# I accept being humbled to hell.
+# I accept harsh conditions.
+# I accept ostracization.
+# I accept fear.
+# By accepting these I say yes to life. To love. To enjoyment.

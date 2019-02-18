@@ -84,8 +84,9 @@ def sequencial_get(mins):
 
 if __name__ == "__main__":
     sequence = sequencial_get(10000)
-    hworld.bulk_upsert(sequence, _column_first=["type", "base", "trade"])
-    print(sequence[1])
+    print(len(sequence))
+    hworld.bulk_upsert(sequence, _column_first=["type", "base", "trade", "exchange"])
+    # print(sequence[1])
     # current_time = round(time.time(), 0)
     # print(current_time - (44*60))
     close = hworld.query_closest(
@@ -94,7 +95,7 @@ if __name__ == "__main__":
     # dc = deepcopy(close)
     # dc['shit'] = "dick"
 
-    print(close)
+    # print(close)
 
     
     

@@ -63,16 +63,16 @@ class FunStore(DataStoreBase):
         FunStore(arctic_lib)._ensure_index()
 
     def bulk_upsert(self, items, _column_first=[], _in=['timestamp']):
-        items = deepcopy(items)
+        deepitems = deepcopy(items)
         assert isinstance(items, list)
         assert isinstance(_column_first, list)
         assert isinstance(_in, list)
 
-        if len(items) == 0:
+        if len(deepitems) == 0:
             raise IndexError("Items should be more than zero")
         
         first_column_search = {}
-        first_item = dict(items[0])
+        first_item = dict(deepitems[0])
         for name in _column_first:
             column = first_item.get(name)
             if column is None:
@@ -84,22 +84,14 @@ class FunStore(DataStoreBase):
         if len(_in) > 0:
             for __in in _in:
                 temp = {
-                    f"{__in}":{"$in": [x[__in] for x in items]}
+                    f"{__in}": {"$in": [x[__in] for x in deepitems]}
                 }
                 first_column_search = {**first_column_search, **temp}
         
-        # print(first_column_search)
 
-        # bulk = self._collection.initialize_ordered_bulk_op()
         self._collection.delete_many(first_column_search)
-        self._collection.insert_many(items)
-        # bulk.insert_many(items)
-        # self._arctic_lib.check_quota()
-        # bulk.execute()
-        # self._collection.bulk_write([
-        #     DeleteMany(first_column_search),
-            
-        # ])
+        time.sleep(0.1) # Temporary Hack
+        self._collection.insert_many(deepitems)
 
 
     @mongo_retry
