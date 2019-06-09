@@ -4,9 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-funtime = {editable = true, path = "."}
 dask = {version = "*", extras = ["complete"]}
 crayons = "*"
+funtime = {editable = true, path = "."}
 
 [dev-packages]
 pylint = "*"

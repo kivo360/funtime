@@ -51,7 +51,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     py_modules=["funtime"],
-    install_requires=['scipy', 'numpy', 'pandas', 'click', 'arctic', 'dask', 'dask[complete]', 'python-decouple', 'maya', 'crayons'], 
+    install_requires=['scipy', 'numpy', 'pandas', 'click', 'arctic', 
+        'toolz', 'dask', 'cloudpickle', 'dask[complete]', 
+        'dask[dataframe]', 'python-decouple', 'maya', 'crayons'
+    ], 
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
