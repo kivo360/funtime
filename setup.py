@@ -44,7 +44,7 @@ class UploadCommand(Command):
 
 setup(
     name="funtime",
-    version="0.4.6",
+    version="0.4.7",
     author="Kevin Hill",
     author_email="kevin@funguana.com",
     description="A timeseries library to make your workflow easier",

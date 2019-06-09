@@ -173,6 +173,20 @@ class FunStore(DataStoreBase):
                 # TODO: Create generic cast
                 yield x
 
+    def query_sorted(self, *args, **kwargs):
+        """ 
+            # Query all of the items sorted
+            
+            Get all of the items and sort by timestamp. Place the limit if you're interested in increasing to more than 500 records
+        """
+        qitem = th.merge_dicts(*args)
+        limit = kwargs.get("limit", 500)
+
+        for x in self._collection.find(qitem).sort("timestamp",pymongo.DESCENDING).limit(limit):
+            del x['_id'] # Remove default unique '_id' field from doc
+            # TODO: Create generic cast
+            yield x
+
     @mongo_retry
     def query_last(self, *args, **kwargs):
         """
